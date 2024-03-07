@@ -25,7 +25,7 @@ class WorkbenchState extends State<Workbench> {
         }),
     CIStep(name: 'Get Dependencies', position: 4),
     CIStep(name: 'Dart Format', position: 5),
-    CIStep(name: 'Lint check', position: 6),
+    CIStep(name: 'Lint Check', position: 6),
     CIStep(name: 'Run Tests', position: 7, properties: {
       'coverage': ['with', 'without']
     }, defaultProperties: {
@@ -99,6 +99,7 @@ class WorkbenchState extends State<Workbench> {
                 ),
                 childWhenDragging: Card(
                   child: ListTile(
+                    key: ValueKey(step.slug),
                     title: Text(step.name),
                     iconColor: Colors.grey,
                   ),
@@ -114,46 +115,48 @@ class WorkbenchState extends State<Workbench> {
         ),
         Expanded(
           flex: 3,
-          child: DragTarget<CIStep>(
-            onAccept: (data) {
-              setState(() {
-                if (!selectedSteps.contains(data)) {
-                  // Prevent adding duplicate steps
-                  selectedSteps.add(data);
-                }
-              });
-            },
-            builder: (context, candidateData, rejectedData) {
-              return Container(
-                color: Colors.grey[200],
-                child: ReorderableListView(
-                  onReorder: (oldIndex, newIndex) {
-                    setState(() {
-                      if (newIndex > oldIndex) {
-                        newIndex -= 1;
-                      }
-                      final item = selectedSteps.removeAt(oldIndex);
-                      selectedSteps.insert(newIndex, item);
-                    });
-                  },
-                  children: selectedSteps
-                      .map(
-                        (step) => ListTile(
-                          key: ValueKey(step),
-                          title: Text(step.name),
-                          subtitle: step.isCompulsory
-                              ? const Text('Compulsory Step')
-                              : null,
-                          onTap: () => selectStep(step),
-                          selected: selectedStep?.name == step.name,
-                          selectedTileColor:
-                              Colors.lightBlueAccent.withOpacity(0.3),
-                        ),
-                      )
-                      .toList(),
-                ),
-              );
-            },
+          child: Material(
+            child: DragTarget<CIStep>(
+              onAccept: (data) {
+                setState(() {
+                  if (!selectedSteps.contains(data)) {
+                    // Prevent adding duplicate steps
+                    selectedSteps.add(data);
+                  }
+                });
+              },
+              builder: (context, candidateData, rejectedData) {
+                return Container(
+                  color: Colors.grey[200],
+                  child: ReorderableListView(
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        if (newIndex > oldIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = selectedSteps.removeAt(oldIndex);
+                        selectedSteps.insert(newIndex, item);
+                      });
+                    },
+                    children: selectedSteps
+                        .map(
+                          (step) => ListTile(
+                            key: ValueKey(step.slug),
+                            title: Text(step.name),
+                            subtitle: step.isCompulsory
+                                ? const Text('Compulsory Step')
+                                : null,
+                            onTap: () => selectStep(step),
+                            selected: selectedStep?.name == step.name,
+                            selectedTileColor:
+                                Colors.lightBlueAccent.withOpacity(0.3),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                );
+              },
+            ),
           ),
         ),
         Expanded(
@@ -195,20 +198,23 @@ class WorkbenchState extends State<Workbench> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          DropdownButton<dynamic>(
-            value: defaultValue,
-            onChanged: (newValue) {
-              setState(() {
-                step.defaultProperties[property] = newValue;
-              });
-            },
-            items: propertyValues.map<DropdownMenuItem<dynamic>>((value) {
-              return DropdownMenuItem<dynamic>(
-                value: value,
-                child: Text(value.toString()),
-              );
-            }).toList(),
-            isExpanded: true,
+          Material(
+            child: DropdownButton<dynamic>(
+              key: ValueKey('dropdown-$property'),
+              value: defaultValue,
+              onChanged: (newValue) {
+                setState(() {
+                  step.defaultProperties[property] = newValue;
+                });
+              },
+              items: propertyValues.map<DropdownMenuItem<dynamic>>((value) {
+                return DropdownMenuItem<dynamic>(
+                  value: value,
+                  child: Text(value.toString()),
+                );
+              }).toList(),
+              isExpanded: true,
+            ),
           ),
         ],
       ),
