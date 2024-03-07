@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'models/ci_step.dart';
+
 class Workbench extends StatefulWidget {
   const Workbench({super.key});
 
@@ -8,25 +10,37 @@ class Workbench extends StatefulWidget {
 }
 
 class WorkbenchState extends State<Workbench> {
-  List<String> availableSteps = [
-    'Checkout Repo',
-    'Setup SSH',
-    'Setup & Cache Flutter',
-    'Get Dependencies',
-    'Dart Format',
-    'Lint check',
-    'Run Tests', // With coverage? Without coverage?
-    'Build android app', // APK or AAB?
-    'Upload android binary to firebase distribution',
-    'Upload to playstore',
-    'Build ios app',
-    'Upload ios binary to firebase distribution',
-    'Upload to applestore & testflight',
-    'Notify via email',
-    'Notify via slack',
+  List<CIStep> availableSteps = [
+    CIStep(name: 'Checkout Repo', position: 1, isCompulsory: true),
+    CIStep(name: 'Setup SSH', position: 2),
+    CIStep(name: 'Setup & Cache Flutter', position: 3, properties: {
+      'cache': ['with', 'without']
+    }, defaultProperties: {
+      'cache': 'with'
+    }),
+    CIStep(name: 'Get Dependencies', position: 4),
+    CIStep(name: 'Dart Format', position: 5),
+    CIStep(name: 'Lint check', position: 6),
+    CIStep(name: 'Run Tests', position: 7, properties: {
+      'coverage': ['with', 'without']
+    }, defaultProperties: {
+      'coverage': 'with'
+    }),
+    CIStep(name: 'Build android app', position: 8, properties: {
+      'binary': ['apk', 'aab']
+    }, defaultProperties: {
+      'binary': 'apk'
+    }),
+    CIStep(name: 'Upload android binary to firebase distribution', position: 9),
+    CIStep(name: 'Upload to playstore', position: 10),
+    CIStep(name: 'Build ios app', position: 11),
+    CIStep(name: 'Upload ios binary to firebase distribution', position: 12),
+    CIStep(name: 'Upload to applestore & testflight', position: 13),
+    CIStep(name: 'Notify via email', position: 14),
+    CIStep(name: 'Notify via slack', position: 15),
   ];
 
-  List<String> selectedSteps = [];
+  List<CIStep> selectedSteps = [];
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +51,7 @@ class WorkbenchState extends State<Workbench> {
             itemCount: availableSteps.length,
             itemBuilder: (context, index) {
               final step = availableSteps[index];
-              return Draggable<String>(
+              return Draggable<CIStep>(
                 data: step,
                 feedback: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -50,20 +64,20 @@ class WorkbenchState extends State<Workbench> {
                     // Wrapped in Material to ensure visual consistency in the feedback.
                     child: Card(
                       child: ListTile(
-                        title: Text(step),
+                        title: Text(step.name),
                       ),
                     ),
                   ),
                 ),
                 childWhenDragging: Card(
                   child: ListTile(
-                    title: Text(step),
+                    title: Text(step.name),
                     iconColor: Colors.grey,
                   ),
                 ),
                 child: Card(
                   child: ListTile(
-                    title: Text(step),
+                    title: Text(step.name),
                   ),
                 ),
               );
@@ -72,7 +86,7 @@ class WorkbenchState extends State<Workbench> {
         ),
         Expanded(
           flex: 3,
-          child: DragTarget<String>(
+          child: DragTarget<CIStep>(
             onAccept: (data) {
               setState(() {
                 if (!selectedSteps.contains(data)) {
@@ -97,7 +111,7 @@ class WorkbenchState extends State<Workbench> {
                   children: selectedSteps
                       .map((step) => ListTile(
                             key: ValueKey(step),
-                            title: Text(step),
+                            title: Text(step.name),
                             trailing: const Icon(Icons.menu),
                           ))
                       .toList(),
