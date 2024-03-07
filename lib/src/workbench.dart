@@ -13,11 +13,16 @@ class WorkbenchState extends State<Workbench> {
   List<CIStep> availableSteps = [
     CIStep(name: 'Checkout Repo', position: 1, isCompulsory: true),
     CIStep(name: 'Setup SSH', position: 2),
-    CIStep(name: 'Setup & Cache Flutter', position: 3, properties: {
-      'cache': ['with', 'without']
-    }, defaultProperties: {
-      'cache': 'with'
-    }),
+    CIStep(
+        name: 'Setup & Cache Flutter',
+        position: 3,
+        isCompulsory: true,
+        properties: {
+          'cache': ['with', 'without']
+        },
+        defaultProperties: {
+          'cache': 'with'
+        }),
     CIStep(name: 'Get Dependencies', position: 4),
     CIStep(name: 'Dart Format', position: 5),
     CIStep(name: 'Lint check', position: 6),
@@ -41,6 +46,21 @@ class WorkbenchState extends State<Workbench> {
   ];
 
   List<CIStep> selectedSteps = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _addCompulsorySteps();
+  }
+
+  void _addCompulsorySteps() {
+    // Automatically add compulsory steps to the selectedSteps list
+    for (CIStep step in availableSteps) {
+      if (step.isCompulsory) {
+        selectedSteps.add(step);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
