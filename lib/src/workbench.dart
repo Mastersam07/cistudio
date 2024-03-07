@@ -47,6 +47,14 @@ class WorkbenchState extends State<Workbench> {
 
   List<CIStep> selectedSteps = [];
 
+  CIStep? selectedStep;
+
+  void selectStep(CIStep step) {
+    setState(() {
+      selectedStep = step;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -129,11 +137,19 @@ class WorkbenchState extends State<Workbench> {
                     });
                   },
                   children: selectedSteps
-                      .map((step) => ListTile(
-                            key: ValueKey(step),
-                            title: Text(step.name),
-                            trailing: const Icon(Icons.menu),
-                          ))
+                      .map(
+                        (step) => ListTile(
+                          key: ValueKey(step),
+                          title: Text(step.name),
+                          subtitle: step.isCompulsory
+                              ? const Text('Compulsory Step')
+                              : null,
+                          onTap: () => selectStep(step),
+                          selected: selectedStep?.name == step.name,
+                          selectedTileColor:
+                              Colors.lightBlueAccent.withOpacity(0.3),
+                        ),
+                      )
                       .toList(),
                 ),
               );
@@ -141,15 +157,61 @@ class WorkbenchState extends State<Workbench> {
           ),
         ),
         Expanded(
-          // Placeholder for the right column (Step settings)
-          child: Container(
-            color: Colors.grey[300],
-            child: const Center(
-              child: Text('Step Settings'),
-            ),
-          ),
+          child: selectedStep == null
+              ? const Center(
+                  child: Text('Select a step to view/edit its settings'))
+              : _buildStepSettings(selectedStep!),
         ),
       ],
+    );
+  }
+
+  Widget _buildStepSettings(CIStep step) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Text('Editing Step: ${step.name}'),
+          ...step.properties.keys
+              .map((property) => _buildPropertyEditor(step, property))
+              .toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyEditor(CIStep step, String property) {
+    var propertyValues = step.properties[property]!;
+    var defaultValue = step.defaultProperties[property];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+            child: Text(
+              property,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          DropdownButton<dynamic>(
+            value: defaultValue,
+            onChanged: (newValue) {
+              setState(() {
+                step.defaultProperties[property] = newValue;
+              });
+            },
+            items: propertyValues.map<DropdownMenuItem<dynamic>>((value) {
+              return DropdownMenuItem<dynamic>(
+                value: value,
+                child: Text(value.toString()),
+              );
+            }).toList(),
+            isExpanded: true,
+          ),
+        ],
+      ),
     );
   }
 }
