@@ -3,211 +3,49 @@ import 'package:flutter/material.dart';
 import '../downloader/web_downloader.dart';
 import '../models/ci_step.dart';
 
-class Workbench extends StatefulWidget {
-  const Workbench({super.key});
+class ExportConfigPanel extends StatelessWidget {
+  const ExportConfigPanel({super.key, this.selectedSteps = const []});
 
-  @override
-  WorkbenchState createState() => WorkbenchState();
-}
-
-class WorkbenchState extends State<Workbench> {
-  List<CIStep> availableSteps = [
-    CIStep(
-      name: 'Runs On',
-      isCompulsory: true,
-      position: 0,
-    ),
-    CIStep(
-      name: 'Trigger Events',
-      isCompulsory: true,
-      position: 1,
-    ),
-    CIStep(name: 'Checkout Repo', position: 1, isCompulsory: true),
-    CIStep(name: 'Setup SSH', position: 2),
-    CIStep(
-      name: 'Setup & Cache Flutter',
-      position: 2,
-      isCompulsory: true,
-    ),
-    CIStep(name: 'Get Dependencies', position: 3),
-    CIStep(name: 'Dart Format', position: 4),
-    CIStep(name: 'Lint Check', position: 5),
-    CIStep(name: 'Run Tests', position: 6),
-    CIStep(name: 'Build android app', position: 7),
-    CIStep(name: 'Upload android binary to firebase distribution', position: 8),
-    CIStep(name: 'Upload to playstore', position: 9),
-    CIStep(name: 'Build ios app', position: 10),
-    CIStep(name: 'Upload ios binary to firebase distribution', position: 11),
-    CIStep(name: 'Upload to applestore & testflight', position: 12),
-    CIStep(name: 'Notify via email', position: 13),
-    CIStep(name: 'Notify via slack', position: 14),
-  ];
-
-  List<CIStep> selectedSteps = [];
-
-  CIStep? selectedStep;
-
-  void selectStep(CIStep step) {
-    setState(() {
-      selectedStep = step;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _addCompulsorySteps();
-  }
-
-  void _addCompulsorySteps() {
-    // Automatically add compulsory steps to the selectedSteps list
-    for (CIStep step in availableSteps) {
-      if (step.isCompulsory) {
-        selectedSteps.add(step);
-      }
-    }
-  }
+  final List<CIStep> selectedSteps;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: availableSteps.length,
-            itemBuilder: (context, index) {
-              final step = availableSteps[index];
-              return Draggable<CIStep>(
-                data: step,
-                feedback: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width *
-                        0.9, // Adjust the width as needed
-                    minHeight:
-                        50, // Minimum height for ListTile, adjust as needed
-                  ),
-                  child: Material(
-                    // Wrapped in Material to ensure visual consistency in the feedback.
-                    child: Card(
-                      child: ListTile(
-                        title: Text(step.name),
-                      ),
-                    ),
-                  ),
-                ),
-                childWhenDragging: Card(
-                  child: ListTile(
-                    key: ValueKey(step.slug),
-                    title: Text(step.name),
-                    iconColor: Colors.grey,
-                  ),
-                ),
-                child: Card(
-                  child: ListTile(
-                    title: Text(step.name),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Material(
-            child: DragTarget<CIStep>(
-              onAccept: (data) {
-                setState(() {
-                  if (!selectedSteps.contains(data)) {
-                    // Prevent adding duplicate steps
-                    selectedSteps.add(data);
-                  }
-                });
-              },
-              builder: (context, candidateData, rejectedData) {
-                return Container(
-                  color: Colors.grey[200],
-                  child: ReorderableListView(
-                    onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        if (newIndex > oldIndex) {
-                          newIndex -= 1;
-                        }
-                        final item = selectedSteps.removeAt(oldIndex);
-                        selectedSteps.insert(newIndex, item);
-                      });
-                    },
-                    children: selectedSteps
-                        .map(
-                          (step) => ListTile(
-                            key: ValueKey(step.slug),
-                            title: Text(step.name),
-                            subtitle: step.isCompulsory
-                                ? const Text('Compulsory Step')
-                                : null,
-                            onTap: () => selectStep(step),
-                            selected: selectedStep?.name == step.name,
-                            selectedTileColor:
-                                Colors.lightBlueAccent.withOpacity(0.3),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        Expanded(
-          child: Column(
-            children: [
-              Expanded(
-                child: selectedStep == null
-                    ? const Center(
-                        child: Text('Select a step to view/edit its settings'))
-                    : _buildStepSettings(selectedStep!),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Export Configuration',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: () => _exportGitHubActions(context),
+                child: const Text('GitHub Actions'),
               ),
-              const Divider(height: 2, thickness: 1, color: Colors.grey),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Export Configuration',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: <Widget>[
-                        ElevatedButton(
-                          onPressed: _exportGitHubActions,
-                          child: const Text('GitHub Actions'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _exportGitLabCI,
-                          child: const Text('GitLab CI'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _exportAzureDevOps,
-                          child: const Text('Azure DevOps'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _exportBitbucketPipeline,
-                          child: const Text('Bitbucket Pipeline'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              ElevatedButton(
+                onPressed: _exportGitLabCI,
+                child: const Text('GitLab CI'),
+              ),
+              ElevatedButton(
+                onPressed: _exportAzureDevOps,
+                child: const Text('Azure DevOps'),
+              ),
+              ElevatedButton(
+                onPressed: _exportBitbucketPipeline,
+                child: const Text('Bitbucket Pipeline'),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  void _exportGitHubActions() {
+  void _exportGitHubActions(BuildContext context) {
     StringBuffer yaml = StringBuffer();
 
     // Standard workflow setup
@@ -454,78 +292,4 @@ class WorkbenchState extends State<Workbench> {
   void _exportAzureDevOps() {}
 
   void _exportBitbucketPipeline() {}
-
-  Widget _buildStepSettings(CIStep step) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Text('Editing Step: ${step.name}'),
-          ...step.properties.keys
-              .map((property) => _buildPropertyEditor(step, property))
-              .toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPropertyEditor(CIStep step, String property) {
-    var propertyValues = step.properties[property]!;
-    var defaultValue = step.defaultProperties[property];
-
-    // Determine if the property should use a dropdown or a text field
-    bool isDropdown = propertyValues.isNotEmpty;
-
-    // TextEditingController for text field input
-    TextEditingController textController =
-        TextEditingController(text: defaultValue);
-    textController.selection = TextSelection.fromPosition(
-        TextPosition(offset: textController.text.length));
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
-            child: Text(
-              property,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          if (isDropdown) ...[
-            DropdownButton<dynamic>(
-              key: ValueKey('dropdown-$property'),
-              value: defaultValue,
-              onChanged: (newValue) {
-                setState(() {
-                  step.defaultProperties[property] = newValue;
-                });
-              },
-              items: propertyValues.map<DropdownMenuItem<dynamic>>((value) {
-                return DropdownMenuItem<dynamic>(
-                  value: value,
-                  child: Text(value.toString()),
-                );
-              }).toList(),
-              isExpanded: true,
-            ),
-          ] else ...[
-            TextField(
-              controller: textController,
-              decoration: InputDecoration(
-                hintText: 'Enter $property',
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (newValue) {
-                setState(() {
-                  step.defaultProperties[property] = newValue;
-                });
-              },
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 }
