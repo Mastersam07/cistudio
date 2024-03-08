@@ -11,31 +11,23 @@ class Workbench extends StatefulWidget {
 
 class WorkbenchState extends State<Workbench> {
   List<CIStep> availableSteps = [
+    CIStep(
+      name: 'Trigger Events',
+      isCompulsory: true,
+      position: 0,
+    ),
     CIStep(name: 'Checkout Repo', position: 1, isCompulsory: true),
     CIStep(name: 'Setup SSH', position: 2),
     CIStep(
-        name: 'Setup & Cache Flutter',
-        position: 3,
-        isCompulsory: true,
-        properties: {
-          'cache': ['with', 'without']
-        },
-        defaultProperties: {
-          'cache': 'with'
-        }),
+      name: 'Setup & Cache Flutter',
+      position: 3,
+      isCompulsory: true,
+    ),
     CIStep(name: 'Get Dependencies', position: 4),
     CIStep(name: 'Dart Format', position: 5),
     CIStep(name: 'Lint Check', position: 6),
-    CIStep(name: 'Run Tests', position: 7, properties: {
-      'coverage': ['with', 'without']
-    }, defaultProperties: {
-      'coverage': 'with'
-    }),
-    CIStep(name: 'Build android app', position: 8, properties: {
-      'binary': ['apk', 'aab']
-    }, defaultProperties: {
-      'binary': 'apk'
-    }),
+    CIStep(name: 'Run Tests', position: 7),
+    CIStep(name: 'Build android app', position: 8),
     CIStep(name: 'Upload android binary to firebase distribution', position: 9),
     CIStep(name: 'Upload to playstore', position: 10),
     CIStep(name: 'Build ios app', position: 11),
@@ -160,14 +152,62 @@ class WorkbenchState extends State<Workbench> {
           ),
         ),
         Expanded(
-          child: selectedStep == null
-              ? const Center(
-                  child: Text('Select a step to view/edit its settings'))
-              : _buildStepSettings(selectedStep!),
+          child: Column(
+            children: [
+              Expanded(
+                child: selectedStep == null
+                    ? const Center(
+                        child: Text('Select a step to view/edit its settings'))
+                    : _buildStepSettings(selectedStep!),
+              ),
+              const Divider(height: 2, thickness: 1, color: Colors.grey),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Export Configuration',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: <Widget>[
+                        ElevatedButton(
+                          onPressed: _exportGitHubActions,
+                          child: const Text('GitHub Actions'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _exportGitLabCI,
+                          child: const Text('GitLab CI'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _exportAzureDevOps,
+                          child: const Text('Azure DevOps'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _exportBitbucketPipeline,
+                          child: const Text('Bitbucket Pipeline'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+
+  void _exportGitHubActions() {}
+
+  void _exportGitLabCI() {}
+
+  void _exportAzureDevOps() {}
+
+  void _exportBitbucketPipeline() {}
 
   Widget _buildStepSettings(CIStep step) {
     return SingleChildScrollView(
