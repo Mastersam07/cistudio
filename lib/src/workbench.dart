@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../downloader/web_downloader.dart';
 import 'models/ci_step.dart';
 
 class Workbench extends StatefulWidget {
@@ -422,8 +423,11 @@ class WorkbenchState extends State<Workbench> {
       }
     }
 
-    // Output the generated YAML string
-    print(yaml.toString());
+    downloadFile(yaml.toString(), 'ci_workflow.yml');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('CI workflow file has been downloaded.')),
+    );
   }
 
   void _exportGitLabCI() {}
