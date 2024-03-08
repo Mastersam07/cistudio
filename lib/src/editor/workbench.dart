@@ -299,13 +299,26 @@ class WorkbenchState extends State<Workbench> {
           }
           break;
         case 'Build android app':
+          String flavor = step.defaultProperties['flavor'] ?? '';
+          String target = step.defaultProperties['target'] ?? '';
+          String buildArgs = step.defaultProperties['buildArgs'] ?? '';
           if (step.defaultProperties['binary'] == 'apk') {
             yaml.writeln('      - name: Build Android APK');
-            yaml.writeln('        run: flutter build apk');
+            yaml.write('        run: flutter build apk');
           }
           if (step.defaultProperties['binary'] == 'aab') {
             yaml.writeln('      - name: Build Android App Bundle');
-            yaml.writeln('        run: flutter build appbundle');
+            yaml.write('        run: flutter build appbundle');
+          }
+          if (flavor.isNotEmpty) {
+            yaml.write(' --flavor $flavor');
+          }
+          if (target.isNotEmpty) {
+            yaml.write(' --target $target');
+          }
+          if (buildArgs.isNotEmpty) {
+            yaml.write(
+                ' $buildArgs'); // Directly append additional build arguments
           }
           break;
         case 'Upload android binary to firebase distribution':
@@ -357,6 +370,8 @@ class WorkbenchState extends State<Workbench> {
           yaml.writeln('          track: beta');
           break;
         case 'Build ios app':
+          // TODO (Mastersam07): Compile time args
+          String flavor = step.defaultProperties['flavor'] ?? '';
           yaml.writeln('      - name: Build iOS and Export IPA');
           yaml.writeln('        uses: yukiarrr/ios-build-action@v0.6.0');
           yaml.writeln('        with:');
@@ -370,7 +385,7 @@ class WorkbenchState extends State<Workbench> {
           yaml.writeln('          team-id: \${{secrets.TEAM_ID}}');
           yaml.writeln(
               '          workspace-path: YourWorkspace.xcworkspace # if using a workspace');
-          yaml.writeln('          scheme: YourSchemeName');
+          yaml.writeln('          scheme: $flavor');
           yaml.writeln('          configuration: Release');
           break;
         case 'Upload ios binary to firebase distribution':

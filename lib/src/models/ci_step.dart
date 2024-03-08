@@ -42,9 +42,27 @@ class CIStep {
     if (slug.contains('build-android-app') && properties.isEmpty) {
       properties = {
         'binary': ['apk', 'aab'],
+        'flavor': [],
+        'target': [],
+        'buildArgs': [],
       };
       defaultProperties = {
         'binary': 'apk',
+        'flavor': '',
+        'target': '',
+        'buildArgs': '',
+      };
+    }
+    if (slug.contains('build-ios-app') && properties.isEmpty) {
+      properties = {
+        'flavor': [],
+        'target': [],
+        'buildArgs': [],
+      };
+      defaultProperties = {
+        'flavor': '',
+        'target': '',
+        'buildArgs': '',
       };
     }
     if (slug.contains('run-tests') && properties.isEmpty) {
