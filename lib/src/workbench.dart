@@ -12,29 +12,34 @@ class Workbench extends StatefulWidget {
 class WorkbenchState extends State<Workbench> {
   List<CIStep> availableSteps = [
     CIStep(
-      name: 'Trigger Events',
+      name: 'Runs On',
       isCompulsory: true,
       position: 0,
+    ),
+    CIStep(
+      name: 'Trigger Events',
+      isCompulsory: true,
+      position: 1,
     ),
     CIStep(name: 'Checkout Repo', position: 1, isCompulsory: true),
     CIStep(name: 'Setup SSH', position: 2),
     CIStep(
       name: 'Setup & Cache Flutter',
-      position: 3,
+      position: 2,
       isCompulsory: true,
     ),
-    CIStep(name: 'Get Dependencies', position: 4),
-    CIStep(name: 'Dart Format', position: 5),
-    CIStep(name: 'Lint Check', position: 6),
-    CIStep(name: 'Run Tests', position: 7),
-    CIStep(name: 'Build android app', position: 8),
-    CIStep(name: 'Upload android binary to firebase distribution', position: 9),
-    CIStep(name: 'Upload to playstore', position: 10),
-    CIStep(name: 'Build ios app', position: 11),
-    CIStep(name: 'Upload ios binary to firebase distribution', position: 12),
-    CIStep(name: 'Upload to applestore & testflight', position: 13),
-    CIStep(name: 'Notify via email', position: 14),
-    CIStep(name: 'Notify via slack', position: 15),
+    CIStep(name: 'Get Dependencies', position: 3),
+    CIStep(name: 'Dart Format', position: 4),
+    CIStep(name: 'Lint Check', position: 5),
+    CIStep(name: 'Run Tests', position: 6),
+    CIStep(name: 'Build android app', position: 7),
+    CIStep(name: 'Upload android binary to firebase distribution', position: 8),
+    CIStep(name: 'Upload to playstore', position: 9),
+    CIStep(name: 'Build ios app', position: 10),
+    CIStep(name: 'Upload ios binary to firebase distribution', position: 11),
+    CIStep(name: 'Upload to applestore & testflight', position: 12),
+    CIStep(name: 'Notify via email', position: 13),
+    CIStep(name: 'Notify via slack', position: 14),
   ];
 
   List<CIStep> selectedSteps = [];

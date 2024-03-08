@@ -31,6 +31,14 @@ class CIStep {
 
   // Optional: Method to set default properties based on step name
   void setDefaultProperties() {
+    if (slug.contains('runs-on') && properties.isEmpty) {
+      properties = {
+        'runner': ['ubuntu-latest', 'windows-latest', 'macos-latest'],
+      };
+      defaultProperties = {
+        'runner': 'ubuntu-latest',
+      };
+    }
     if (slug.contains('build-android-app') && properties.isEmpty) {
       properties = {
         'binary': ['apk', 'aab'],
