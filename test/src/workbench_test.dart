@@ -1,4 +1,4 @@
-import 'package:cistudio/workbench.dart';
+import 'package:cistudio/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,7 +7,7 @@ void main() {
     testWidgets('Selecting a CIStep updates selectedStep',
         (WidgetTester tester) async {
       // Build our app and trigger a frame.
-      await tester.pumpWidget(const MaterialApp(home: Workbench()));
+      await tester.pumpWidget(const MyApp());
 
       final setupCacheFlutterKey =
           find.byKey(const ValueKey("setup-&-cache-flutter"));
@@ -25,7 +25,7 @@ void main() {
     testWidgets(
         'Reordering a CIStep in the ReorderableListView updates the order',
         (WidgetTester tester) async {
-      await tester.pumpWidget(const MaterialApp(home: Workbench()));
+      await tester.pumpWidget(const MyApp());
 
       // Ensure the reorderable list is populated.
       await tester.pumpAndSettle();
@@ -65,7 +65,7 @@ void main() {
       'Selecting a property option from the dropdown updates the selection',
       (WidgetTester tester) async {
     // Build the app and trigger a frame.
-    await tester.pumpWidget(const MaterialApp(home: Workbench()));
+    await tester.pumpWidget(const MyApp());
 
     final reorderableListFinder = find.byType(ReorderableListView);
     final stepFinder = find.descendant(
