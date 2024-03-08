@@ -37,3 +37,16 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Mastersam07/cistudio
+      
+      - name: Generate release build
+        run: flutter build web --release -t lib/main.dart --web-renderer canvaskit
+
+      - name: Deploy cistudio
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          user_name: 'Alfred 🦇'
+          user_email: 'alfred@batman.inc'
+          full_commit_message: 'feat: publish cistudio'
+          commit_message: 'feat: publish cistudio'
