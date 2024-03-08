@@ -39,7 +39,7 @@ jobs:
           slug: Mastersam07/cistudio
       
       - name: Generate release build
-        run: flutter build web --release -t lib/main.dart --web-renderer canvaskit
+        run: flutter build web --release -t lib/main.dart --web-renderer canvaskit --base-href=/cistudio/
 
       - name: Deploy cistudio
         uses: peaceiris/actions-gh-pages@v3
