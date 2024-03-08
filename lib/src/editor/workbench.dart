@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../downloader/web_downloader.dart';
-import 'models/ci_step.dart';
+import '../models/ci_step.dart';
 
 class Workbench extends StatefulWidget {
   const Workbench({super.key});
@@ -257,8 +257,12 @@ class WorkbenchState extends State<Workbench> {
               '          ssh-private-key: \${{ secrets.SSH_PRIVATE_KEY }}');
           break;
         case 'Setup & Cache Flutter':
+          String flutterVersion =
+              step.defaultProperties['flutterVersion'] ?? 'stable';
           yaml.writeln('      - name: Setup Flutter');
           yaml.writeln('        uses: subosito/flutter-action@v1');
+          yaml.writeln('        with:');
+          yaml.writeln('          flutter-version: $flutterVersion');
           if (step.defaultProperties.containsKey('cache') &&
               step.defaultProperties['cache'] == 'with') {
             yaml.writeln('      - name: Cache Flutter Dependencies');
@@ -453,6 +457,15 @@ class WorkbenchState extends State<Workbench> {
     var propertyValues = step.properties[property]!;
     var defaultValue = step.defaultProperties[property];
 
+    // Determine if the property should use a dropdown or a text field
+    bool isDropdown = propertyValues.isNotEmpty;
+
+    // TextEditingController for text field input
+    TextEditingController textController =
+        TextEditingController(text: defaultValue);
+    textController.selection = TextSelection.fromPosition(
+        TextPosition(offset: textController.text.length));
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
@@ -465,8 +478,8 @@ class WorkbenchState extends State<Workbench> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Material(
-            child: DropdownButton<dynamic>(
+          if (isDropdown) ...[
+            DropdownButton<dynamic>(
               key: ValueKey('dropdown-$property'),
               value: defaultValue,
               onChanged: (newValue) {
@@ -482,7 +495,20 @@ class WorkbenchState extends State<Workbench> {
               }).toList(),
               isExpanded: true,
             ),
-          ),
+          ] else ...[
+            TextField(
+              controller: textController,
+              decoration: InputDecoration(
+                hintText: 'Enter $property',
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (newValue) {
+                setState(() {
+                  step.defaultProperties[property] = newValue;
+                });
+              },
+            ),
+          ],
         ],
       ),
     );

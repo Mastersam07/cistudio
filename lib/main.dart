@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'src/workbench.dart';
+import 'src/editor/workbench.dart';
 
 void main() {
   runApp(const MyApp());

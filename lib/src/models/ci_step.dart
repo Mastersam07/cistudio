@@ -56,9 +56,10 @@ class CIStep {
 
     if (slug.contains('setup-&-cache-flutter') && properties.isEmpty) {
       properties = {
-        'cache': ['with', 'without']
+        'cache': ['with', 'without'],
+        'flutterVersion': [],
       };
-      defaultProperties = {'cache': 'with'};
+      defaultProperties = {'cache': 'with', 'flutterVersion': 'stable'};
     }
 
     if (slug.contains('trigger-events') && properties.isEmpty) {

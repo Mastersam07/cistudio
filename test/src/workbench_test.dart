@@ -1,4 +1,4 @@
-import 'package:cistudio/src/workbench.dart';
+import 'package:cistudio/src/editor/workbench.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
