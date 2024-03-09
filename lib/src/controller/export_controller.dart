@@ -62,12 +62,25 @@ class ExportController {
           yaml.writeln('          flutter-version: $flutterVersion');
           if (step.defaultProperties.containsKey('cache') &&
               step.defaultProperties['cache'] == 'with') {
+            final runner = selectedSteps
+                .firstWhere((step) => step.slug == 'runs-on')
+                .defaultProperties['runner'];
             yaml.writeln('      - name: Cache Flutter Dependencies');
             yaml.writeln('        uses: actions/cache@v2');
             yaml.writeln('        with:');
-            yaml.writeln('          path: ~/.pub-cache');
+            if (runner == 'ubuntu-latest') {
+              yaml.writeln('          path: ~/.pub-cache');
+            }
+            if (runner == 'macos-latest') {
+              yaml.writeln('          path: ~/Library/Caches/pub-cache');
+            }
+            if (runner == 'windows-latest') {
+              yaml.writeln('          path: %LOCALAPPDATA%\\Pub\\Cache');
+            }
             yaml.writeln(
-                '          key: \${{ runner.os }}-pub-cache-\${{ hashFiles(\'**/pubspec.yaml\') }}');
+                '          key: \${{ runner.os }}-pub-cache-\${{ hashFiles(\'**/pubspec.lock\') }}');
+            yaml.writeln(
+                '          restore-keys: \${{ runner.os }}-pub-cache-');
           }
           break;
         case 'Get Dependencies':
@@ -119,6 +132,9 @@ class ExportController {
           }
           break;
         case 'Upload android binary to firebase distribution':
+          final androidBinary = selectedSteps
+              .firstWhere((step) => step.slug == 'build-android-app')
+              .defaultProperties['binary'];
           yaml.writeln(
               '      - name: Upload Android binary to Firebase App Distribution');
           yaml.writeln(
@@ -128,17 +144,11 @@ class ExportController {
           yaml.writeln(
               '          serviceCredentialsFileContent: \${{ secrets.CREDENTIAL_FILE_CONTENT }}');
           yaml.writeln('          groups: testers');
-          if (selectedSteps
-                  .firstWhere((step) => step.slug == 'build-android-app')
-                  .defaultProperties['binary'] ==
-              'apk') {
+          if (androidBinary == 'apk') {
             yaml.writeln(
                 '          file: build/app/outputs/flutter-apk/app-release.apk');
           }
-          if (selectedSteps
-                  .firstWhere((step) => step.slug == 'build-android-app')
-                  .defaultProperties['binary'] ==
-              'aab') {
+          if (androidBinary == 'aab') {
             yaml.writeln(
                 '          file: build/app/outputs/flutter-apk/app-release.aab');
           }
