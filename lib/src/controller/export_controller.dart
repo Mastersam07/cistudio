@@ -257,6 +257,147 @@ class ExportController {
   }
 
   void exportGitLabCI(BuildContext context, List<CIStep> selectedSteps) {
+    StringBuffer yaml = StringBuffer();
+
+    // Define stages
+    yaml.writeln('stages:');
+    yaml.writeln('  - prepare');
+    yaml.writeln('  - build');
+    yaml.writeln('  - test');
+    yaml.writeln('  - deploy');
+
+    // Handling "Runs On" equivalent in GitLab CI by defining image
+    yaml.writeln('image: cirrusci/flutter:latest');
+
+    final cacheStep = selectedSteps
+        .firstWhere((step) => step.slug == 'setup-&-cache-flutter');
+
+    if (cacheStep.defaultProperties.containsKey('cache') &&
+        cacheStep.defaultProperties['cache'] == 'with') {
+      yaml.writeln('cache:');
+      yaml.writeln('  paths:');
+      yaml.writeln('    - .pub-cache');
+    }
+
+    // Iterate through selected steps to add them to the YAML configuration
+    for (CIStep step in selectedSteps) {
+      switch (step.name) {
+        case 'Setup SSH':
+          // TODO: GitLab doesn't have a direct equivalent, so this might involve custom scripts
+          break;
+        case 'Setup & Cache Flutter':
+          String flutterVersion =
+              step.defaultProperties['flutterVersion'] ?? 'stable';
+          yaml.writeln('setup_flutter:');
+          yaml.writeln('  stage: prepare');
+          yaml.writeln('  script:');
+          yaml.writeln('    - flutter version $flutterVersion');
+          yaml.writeln('    - flutter pub get');
+          break;
+        case 'Get Dependencies':
+          // This would typically be covered under 'setup_flutter'
+          break;
+        case 'Dart Format':
+          yaml.writeln('format_check:');
+          yaml.writeln('  stage: build');
+          yaml.writeln('  script:');
+          yaml.writeln('    - flutter format --set-exit-if-changed .');
+          yaml.writeln('  only:');
+          yaml.writeln('    - branches');
+          break;
+        case 'Lint Check':
+          yaml.writeln('lint:');
+          yaml.writeln('  stage: build');
+          yaml.writeln('  script:');
+          yaml.writeln('    - flutter analyze');
+          yaml.writeln('  only:');
+          yaml.writeln('    - branches');
+          break;
+        case 'Run Tests':
+          yaml.writeln('test:');
+          yaml.writeln('  stage: test');
+          yaml.writeln('  script:');
+          yaml.writeln('    - flutter test');
+          yaml.writeln('  artifacts:');
+          yaml.writeln('    paths:');
+          yaml.writeln('      - coverage/');
+          yaml.writeln('  only:');
+          yaml.writeln('    - branches');
+          break;
+        case 'Build android app':
+          yaml.writeln('build_android:');
+          yaml.writeln('  stage: build');
+          yaml.writeln('  script:');
+          String buildCmd = 'flutter build apk'; // Default to APK
+          if (step.defaultProperties['binary'] == 'aab') {
+            buildCmd = 'flutter build appbundle';
+          }
+          // Include flavor and build arguments if specified
+          String flavor = step.defaultProperties['flavor'] ?? '';
+          if (flavor.isNotEmpty) {
+            buildCmd += ' --flavor $flavor';
+          }
+          String target = step.defaultProperties['target'] ?? '';
+          if (target.isNotEmpty) {
+            buildCmd += ' --target $target';
+          }
+          String buildArgs = step.defaultProperties['buildArgs'] ?? '';
+          if (buildArgs.isNotEmpty) {
+            buildCmd += ' $buildArgs';
+          }
+          yaml.writeln('    - $buildCmd');
+          yaml.writeln('  artifacts:');
+          yaml.writeln('    paths:');
+          if (step.defaultProperties['binary'] == 'apk') {
+            yaml.writeln(
+                '      - build/app/outputs/apk/release/app-release.apk');
+          }
+          if (step.defaultProperties['binary'] == 'aab') {
+            yaml.writeln(
+                '      - build/app/outputs/bundle/release/app-release.aab');
+          }
+          yaml.writeln('  only:');
+          yaml.writeln('    - branches');
+          break;
+        case 'Build ios app':
+          yaml.writeln('build_ios:');
+          yaml.writeln('  stage: build');
+          yaml.writeln('  script:');
+          yaml.writeln(
+              '    - xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphoneos -configuration Release archive -archivePath \$CI_PROJECT_DIR/build/Runner.xcarchive | xcpretty');
+          yaml.writeln(
+              '    - xcodebuild -exportArchive -archivePath \$CI_PROJECT_DIR/build/Runner.xcarchive -exportOptionsPlist ios/ExportOptions.plist -exportPath \$CI_PROJECT_DIR/build');
+          yaml.writeln('  artifacts:');
+          yaml.writeln('    paths:');
+          yaml.writeln('      - build/Runner.ipa');
+          yaml.writeln('  only:');
+          yaml.writeln('    - branches');
+          break;
+        case 'Upload android binary to firebase distribution':
+          // This step assumes you have Firebase CLI installed and configured
+          yaml.writeln('deploy_android_firebase:');
+          yaml.writeln('  stage: deploy');
+          yaml.writeln('  script:');
+          yaml.writeln(
+              '    - firebase appdistribution:distribute build/app/outputs/apk/release/app-release.apk --app \$FIREBASE_APP_ID --token \$FIREBASE_TOKEN --groups testers');
+          yaml.writeln('  only:');
+          yaml.writeln('    - master'); // or any specific branch
+          break;
+        case 'Upload ios binary to firebase distribution':
+          // Similar to Android, but for the iOS binary
+          yaml.writeln('deploy_ios_firebase:');
+          yaml.writeln('  stage: deploy');
+          yaml.writeln('  script:');
+          yaml.writeln(
+              '    - firebase appdistribution:distribute build/Runner.ipa --app \$FIREBASE_APP_ID --token \$FIREBASE_TOKEN --groups testers');
+          yaml.writeln('  only:');
+          yaml.writeln('    - master'); // or any specific branch
+          break;
+      }
+    }
+
+    downloadFile(yaml.toString(), 'ci_workflow.yml');
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('CI workflow file has been downloaded.')),
     );
