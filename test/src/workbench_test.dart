@@ -142,5 +142,62 @@ void main() {
       expect(
           find.text('CI workflow file has been downloaded.'), findsOneWidget);
     });
+
+    testWidgets('Tapping Gitlab CI button triggers export action',
+        (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const MyApp());
+
+      final gitlabButtonFinder =
+          find.widgetWithText(ElevatedButton, 'GitLab CI');
+      expect(gitlabButtonFinder, findsOneWidget);
+
+      await tester.tap(gitlabButtonFinder);
+
+      await tester.pumpAndSettle();
+
+      // Check for a SnackBar in the ScaffoldMessenger
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+          find.text('CI workflow file has been downloaded.'), findsOneWidget);
+    });
+
+    testWidgets('Tapping Azure DevOps button triggers export action',
+        (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const MyApp());
+
+      final azureButtonFinder =
+          find.widgetWithText(ElevatedButton, 'Azure DevOps');
+      expect(azureButtonFinder, findsOneWidget);
+
+      await tester.tap(azureButtonFinder);
+
+      await tester.pumpAndSettle();
+
+      // Check for a SnackBar in the ScaffoldMessenger
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+          find.text('CI workflow file has been downloaded.'), findsOneWidget);
+    });
+
+    testWidgets('Tapping Bitbucket Pipeline button triggers export action',
+        (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const MyApp());
+
+      final bitbucketButtonFinder =
+          find.widgetWithText(ElevatedButton, 'Bitbucket Pipeline');
+      expect(bitbucketButtonFinder, findsOneWidget);
+
+      await tester.tap(bitbucketButtonFinder);
+
+      await tester.pumpAndSettle();
+
+      // Check for a SnackBar in the ScaffoldMessenger
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+          find.text('CI workflow file has been downloaded.'), findsOneWidget);
+    });
   });
 }
